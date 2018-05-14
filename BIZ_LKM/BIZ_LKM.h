@@ -3,19 +3,25 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <inttypes.h>
 
 #define LKM_A 36261
 #define LKM_C 66037
 #define LKM_M 312500
 
 typedef struct LKMSet {
-    unsigned long long a;
-    unsigned long long c;
-    unsigned long long m;
+    int64_t a;
+    int64_t c;
+    int64_t m;
 } LKMSet;
 
+typedef struct LKMUserArray {
+    LKMSet * set;
+    int len;
+} LKMUserArray;
+
 typedef struct LKMrand {
-    unsigned long long seed;
+    int64_t seed;
     LKMSet set;
 } LKMrand;
 
@@ -41,8 +47,11 @@ const LKMSet def_set[] = {
 
 #define SIZE 15
 
+void free_array(LKMUserArray ** arr);
+
 void lkmRandInit(LKMrand * rand);
-unsigned long long lkmDefRand();
+int64_t lkmDefRand();
+void lkmRedList(LKMUserArray ** arr);
 
 void lkmTestParam(LKMSet * set);
-void lkmCrack(unsigned long long x1, unsigned long long x2);
+void lkmCrack(LKMUserArray ** arr, int64_t x0, int64_t x1, int64_t x2, int64_t x3);

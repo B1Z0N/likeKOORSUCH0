@@ -19,8 +19,9 @@ MTUserArray * mtRandInit(MTRand * rand) {
         mt_def.newX = (int32_t *) malloc(sizeof(int32_t) * mt_def.arr_len);
         mt_def.x = (int32_t *) malloc(sizeof(int32_t) * mt_def.arr_len);
 
-        for(int i = 0; i < mt_def.arr_len; i++)
+        for(int i = 0; i < mt_def.arr_len; i++) {
             mt_def.x[i] = getAbsStartRand();
+        }
 
     } else {
         rand->newX = (int32_t *) malloc(sizeof(int32_t) * mt_def.arr_len);
@@ -49,6 +50,13 @@ MTUserArray * mtRandInit(MTRand * rand) {
 
     return(MTArr);
 }
+void mtDefSwapBuffers() {
+    for(int i = 0; i < mt_def.arr_len; i++) {
+        int32_t temp = mt_def.x[i];
+        mt_def.x[i] = mt_def.newX[i];
+        mt_def.newX[i] = temp;
+    }
+}
 void mtDefRand() {
     for(int i = 0; i < mt_def.arr_len; i++) {
         int32_t y = 
@@ -62,8 +70,10 @@ void mtDefRand() {
         y = y ^ (y >> mt_def.hardening0);
         y = y ^ ((y << mt_def.hardening1) & mt_def.hardening2);
         y = y ^ ((y << mt_def.hardening3) & mt_def.hardening4);
-        mt_def.newX[i] = y ^ (y >> mt_def.hardening5); 
+        mt_def.newX[i] = y ^ (y >> mt_def.hardening5);
     }
+
+
 }
 void mtDefKill(MTUserArray * MTArr) {
     if(MTArr != NULL) free(MTArr);
@@ -75,8 +85,11 @@ int main() {
     MTUserArray * arr = mtRandInit(NULL);
     mtDefRand();
 
-    for(int i = 0; i < arr->len; i++)
-        printf("\n%d", arr->ptr[i]);
+    printf("Ваша послідовність: \n");
+    for(int i = 0; i < arr->len; i++) {
+        if(i % 4 == 0) printf("\n");
+        printf("%" PRId32 "   ", arr->ptr[i]);
+    }
 
     mtDefKill(NULL);
 

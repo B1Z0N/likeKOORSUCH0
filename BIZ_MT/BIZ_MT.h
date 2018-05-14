@@ -2,7 +2,6 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
-#include <string.h>
 #include <inttypes.h>
 
 #define W 32
@@ -46,5 +45,6 @@ typedef struct MTRand {
 MTRand mt_def;
 
 MTUserArray * mtRandInit(MTRand * rand);
+void mtDefSwapBuffers();
 void mtDefRand();
 void mtDefKill();
