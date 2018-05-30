@@ -1,12 +1,11 @@
 #include "RandomFunctions.h"
 #include <inttypes.h>
+#include <stdint.h>
 
 #ifdef __linux__
     #include <sys/random.h>
     #include <fcntl.h>
     #include <unistd.h>
-#elif _WIN32 
-    #include <Wincrypt.h>
 #endif
 
 
@@ -48,28 +47,13 @@ int is_simple(unsigned long long x1) {
 
     return(1);
 }
-
-void print_byte(int32_t var, int size) {
-    int t = 0;
-    for(int i = size * 8 - 1; i >= 0; i--, t++) {
-        if(t % 4 == 0) printf("|");
-        printf("%d", (var >> i) & 1);
-    }
-    printf("\n");
-}
-int getAbsStartRand() {
-    int randomNumber;
+int64_t getAbsStartRand() {
+    int64_t randomNumber;
     #ifdef __linux__
         int test = getrandom(&randomNumber, sizeof(randomNumber), 0);
-        if(test == -1) return(clock());
-    #elif _WIN32
-        HCRYPTPROV   hCryptProv;
-        BYTE pbData[sizeof(int)];
-        if(CryptGenRandom(hCryptProv, sizeof(int), pbData) == 0) return(clock());
-
-        randomNumber = (int) pbData;
+        if(test == -1) return(time(0));
     #else
-        return(clock());
+        return(time(0));
     #endif
 
     return(abs(randomNumber));

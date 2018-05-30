@@ -1,6 +1,10 @@
 #include "BIZ_MT.h"
 #include "../RandomFunctions.h"
 
+#define LKM_A 36261
+#define LKM_C 66037
+#define LKM_M 312500
+
 MTUserArray * mtRandInit(MTRand * rand) {
     if(rand == NULL) {
         mt_def.arr_len = P;
@@ -19,8 +23,12 @@ MTUserArray * mtRandInit(MTRand * rand) {
         mt_def.newX = (int32_t *) malloc(sizeof(int32_t) * mt_def.arr_len);
         mt_def.x = (int32_t *) malloc(sizeof(int32_t) * mt_def.arr_len);
 
+        int64_t lkm  = getAbsStartRand();
+
         for(int i = 0; i < mt_def.arr_len; i++) {
-            mt_def.x[i] = getAbsStartRand();
+            lkm = (LKM_A * lkm + LKM_C) % LKM_M;
+            mt_def.x[i] = lkm;
+            printf("%d", mt_def.x[i]);
         }
 
     } else {

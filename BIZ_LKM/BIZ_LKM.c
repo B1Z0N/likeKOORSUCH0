@@ -4,18 +4,18 @@
 int main() {
     int64_t x0, x1, x2, x3, x4;
 
-    LKMSet set = {32109, 7839, 1232379};
+    LKMSet set = {213, 324, 2617};
     LKMrand rand;
     rand.set = set;
-    rand.seed = 7899;
+    rand.seed = 200;
 
     lkmRandInit(NULL);
 
-    printf("Ваша послідовність: ");
+   /* printf("Ваша послідовність: ");
 
     for(int i = 0; i < 100; i++) { if(i % 4 ==0) printf("\n"); printf("%" PRId64 "   ", lkmDefRand());}
-
-    /*x0 = lkmDefRand();
+    */
+    x0 = lkmDefRand();
     x1 = lkmDefRand();
     x2 = lkmDefRand();
     x3 = lkmDefRand();
@@ -24,21 +24,17 @@ int main() {
 
     for(int i = 0; i < 20; i++) printf("%" PRId64 "\n", lkmDefRand());
 
-    LKMUserArray * arr;
+    node * n;
 
-    lkmCrack(&arr, x0, x1, x2, x3);
+    lkmCrack(&n, x0, x1, x2, x3);
 
-    lkmRedList(&arr);
+    lkmRedList(&n);
 
-    free_array(&arr);*/
+    clear_list(&n);
 
     return(0);
 }
-void free_array(LKMUserArray ** arr) {
-    free((*arr)->set);
-    free(*arr);
-}
-void lkmCrack(LKMUserArray ** arr, int64_t x0,  int64_t x1,  int64_t x2, int64_t x3) {
+void lkmCrack(node ** h, int64_t x0,  int64_t x1,  int64_t x2, int64_t x3) {
     //x1 = (a * x0 + c) mod m
     //x2 = (a * x1 + c) mod m               a, c, m ?
     //x3 = (a * x2 + c) mod m
@@ -60,56 +56,57 @@ void lkmCrack(LKMUserArray ** arr, int64_t x0,  int64_t x1,  int64_t x2, int64_t
     m_denominator = m_denominator >= 0 ? m_denominator : -m_denominator;// число дільником якого є шукане M
 
     if(m_denominator == 0) { 
-        printf("Недостатньо інформації, введіть наступне число: ");
+        printf("Недостатньо інформації, введіть наступне число, (-1) щоб завершити роботу: ");
         int64_t next;
         scanf("%" PRId64 , &next);
-        lkmCrack(arr, x1, x2, x3, next); //Якщо число на яке ділиться М буде дорівнювати нуло, тоді невизначеність
+        if(next == -1) return;
+        lkmCrack(h, x1, x2, x3, next); //Якщо число на яке ділиться М буде дорівнювати нуло, тоді невизначеність
         return; 
     }
-
-    (*arr) = (LKMUserArray *) malloc(sizeof(LKMUserArray));
-    (*arr)->len = 0;
-
+    
+    int flag = 0;
+    
     for(int64_t i = max4ll(x0, x1, x2, x3); i <= m_denominator / 2; i++) {
         if(m_denominator % i == 0) {
-            (*arr)->len++;
-            (*arr)->set = (LKMSet *) realloc((*arr)->set, (*arr)->len * sizeof(LKMSet)); //знаходимо всі дільники числа m_denominator
-            (*arr)->set[(*arr)->len - 1].m = i;
+            if(flag == 0) { (*h) = init_node(-1, -1, i); flag = 1; }
+            else {
+                add_node(-1, -1, i, h);    
+            }
         } 
     }
 
-    (*arr)->len++;
-    (*arr)->set = (LKMSet *) realloc((*arr)->set, (*arr)->len * sizeof(LKMSet));
-    (*arr)->set[(*arr)->len - 1].m = m_denominator;
+    if(flag == 0) { (*h) = init_node(-1, -1, m_denominator); }
+    else {
+        add_node(-1, -1, m_denominator, h);
+    }
 
-    int static_len = (*arr)->len;
+    node * temp = *h;
 
-    for(int i = 0; i < static_len; i++) {
-        _Bool empty = 1;
-        int64_t new_k1 = k1 >= 0 ? k1 : k1 + (*arr)->set[i].m;
-        int64_t new_k2 = k2 >= 0 ? k2 : k2 + (*arr)->set[i].m;
-        for(int64_t j = 0; j <= (*arr)->set[i].m; j++) {
-            if(new_k1 == (j * new_k2) % (*arr)->set[i].m) {
-                int64_t temp = x1 - ((j * x0) % (*arr)->set[i].m);
-                if(empty == 1) {
-                    (*arr)->set[i].a = j;
-                    (*arr)->set[i].c = IS_EQUAL(temp, (*arr)->set[i].m);    //перебором знаходимо всі А для конкретного M
-                    empty = 0;                                              //якщо таких декілька, то "лишні" записуємо в кінець масиву 
-                } else {                                                    //і уже для конкретного А знаходимо єдине значення С
-                    (*arr)->len++;
-                    (*arr)->set = (LKMSet *) realloc((*arr)->set, (*arr)->len * sizeof(LKMSet));
-                    (*arr)->set[(*arr)->len - 1].m = (*arr)->set[i].m;
-                    (*arr)->set[(*arr)->len - 1].a = j;
-                    (*arr)->set[(*arr)->len - 1].c = IS_EQUAL(temp, (*arr)->set[i].m);                    
+    while(temp) {
+        int64_t new_k1 = IS_EQUAL(k1, temp->m);
+        int64_t new_k2 = IS_EQUAL(k2, temp->m);
+
+        for(int64_t j = 0; j <= temp->m; j++) {
+        
+            if(new_k1 == (j * new_k2) % temp->m) {
+                int64_t temp_int = x1 - ((j * x0) % temp->m);
+        
+                if(temp->a == -1) {
+                    temp->a = j;
+                    temp->c = IS_EQUAL(temp_int, temp->m); 
+                } else {
+                    add_node(j, IS_EQUAL(temp_int, temp->m), temp->m, h);
                 }
             }
+        
         }
+
+        temp = temp->next;
     }
 }
-void lkmRedList(LKMUserArray ** arr) {
+void lkmRedList(node ** h) {
     printf("Ваш список: ");
-    for(int i = 0; i < (*arr)->len; i++)
-        printf("\n%" PRId64 " %" PRId64 " %" PRId64 "\n", (*arr)->set[i].a, (*arr)->set[i].c, (*arr)->set[i].m);
+    print_list(*h);
 
     int len = 2;
     int64_t * num = (int64_t *) malloc(sizeof(int64_t) * len);
@@ -120,27 +117,21 @@ void lkmRedList(LKMUserArray ** arr) {
     printf("Продовжуйте вводити числа\n");
     printf("-1 - щоб зупинитись");
 
-    for(;;) {
-        for(int i = 0; i < (*arr)->len; i++) {
-            if((*arr)->set[i].m == -1) continue;
-        
-            if(num[len - 1] != ((*arr)->set[i].a * num[len - 2] + (*arr)->set[i].c) % (*arr)->set[i].m) {
-                (*arr)->set[i].m = -1;
-                break;
-            }
+    while(1){
+        node * temp = (*h);
+
+        while(temp) {
+            if(num[len - 1] != (temp->a * num[len - 2] + temp->c) % temp->m)
+                del_node(temp->a, temp->c, temp->m, h);
+            temp = temp->next;
         }
 
-        printf("Список можливих варіантів на даний момент: \n");
-        
-        int count = 0;
-        for(int i = 0; i < (*arr)->len; i++) {
-            if((*arr)->set[i].m == -1) continue;
-            printf("\n%" PRId64 " %" PRId64 " %" PRId64 "\n", (*arr)->set[i].a, (*arr)->set[i].c, (*arr)->set[i].m);
-            count++;
-        }
+        printf("1Список можливих варіантів на даний момент: \n");
+        print_list(*h);
 
-        if(count == 1) {printf("Вітаємо, залишилось лише одне рішення!\n"); return; }
-        if(count == 0) {printf("Щось пішло не так і варіантів не залишилось, спробуйте ще раз!\n");}
+        int count = list_len(*h);
+        if(count == 1) {printf("2Вітаємо, залишилось лише одне рішення!\n"); return; }
+        if(count <= 0) {printf("3Щось пішло не так і варіантів не залишилось, спробуйте ще раз!\n"); return; }
 
         int64_t test;
         scanf("%" PRId64, &test);

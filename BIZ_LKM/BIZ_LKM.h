@@ -5,20 +5,17 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include "nodes.h"
+
 #define LKM_A 36261
 #define LKM_C 66037
-#define LKM_M 312500
+#define LKM_M 312500///////
 
 typedef struct LKMSet {
     int64_t a;
     int64_t c;
     int64_t m;
 } LKMSet;
-
-typedef struct LKMUserArray {
-    LKMSet * set;
-    int len;
-} LKMUserArray;
 
 typedef struct LKMrand {
     int64_t seed;
@@ -47,11 +44,9 @@ const LKMSet def_set[] = {
 
 #define SIZE 15
 
-void free_array(LKMUserArray ** arr);
-
 void lkmRandInit(LKMrand * rand);
 int64_t lkmDefRand();
-void lkmRedList(LKMUserArray ** arr);
+void lkmRedList(node ** h);
 
 void lkmTestParam(LKMSet * set);
-void lkmCrack(LKMUserArray ** arr, int64_t x0, int64_t x1, int64_t x2, int64_t x3);
+void lkmCrack(node **h, int64_t x0, int64_t x1, int64_t x2, int64_t x3);
